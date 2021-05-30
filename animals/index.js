@@ -9,7 +9,7 @@ function passedHours(timestamp) {
 class Animal {
   constructor(animal) {
     this.name = animal.name;
-    this.age = animal.age;
+    this.createdAt = animal.createdAt;
     this.id = animal.id;
     this.lastFeed = animal.lastFeed;
     this.satiation = animal.satiation;
@@ -17,10 +17,14 @@ class Animal {
     this.happiness = animal.happiness;
   }
 
-  static async create(name, age) {
+  get age() {
+    return passedHours(this.createdAt);
+  }
+
+  static async create(name) {
     const data = {
       name,
-      age,
+      createdAt: Date.now(),
       lastFeed: Date.now(),
       satiation: 10,
       status: 'alive',
@@ -61,7 +65,7 @@ class Animal {
   async save() {
     const data = {
       name: this.name,
-      age: this.age,
+      createdAt: this.createdAt,
       status: this.status,
       lastFeed: this.lastFeed,
       satiation: this.satiation,
