@@ -35,5 +35,3 @@ async function update(key, item) {
 }
 
 module.exports = { create, update, read };
-
-// As an admin, the app has access to read and write all data, regardless of Security Rules
