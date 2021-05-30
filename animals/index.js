@@ -1,28 +1,4 @@
-const fs = require('fs');
-const path = require('path');
-
-function readFile(id) {
-  const fileName = path.join(__dirname, `${id}.json`);
-  return new Promise((resolve, reject) => {
-    fs.readFile(fileName, (error, data) => {
-      if (error) reject(error);
-      resolve(JSON.parse(data));
-    });
-  });
-}
-
-function generateId() {
-  return new Promise((resolve, reject) => {
-    fs.readdir(__dirname, (error, files) => {
-      if (error) reject(error);
-      const ids = files
-        .filter((file) => /^\d.json$/.test(file))
-        .map((file) => Number(file.replace(/.json$/, '')));
-      const lastIndex = Math.max(...ids) + 1;
-      resolve(lastIndex);
-    });
-  });
-}
+const base = require('../base');
 
 function passedHours(timestamp) {
   const now = Date.now();
@@ -37,28 +13,27 @@ class Animal {
     this.id = animal.id;
     this.lastFeed = animal.lastFeed;
     this.satiation = animal.satiation;
-    this.status = animal.alive;
+    this.status = animal.status;
     this.happiness = animal.happiness;
   }
 
   static async create(name, age) {
-    const id = await generateId();
-    const animal = new Animal({
+    const data = {
       name,
       age,
-      id,
       lastFeed: Date.now(),
       satiation: 10,
       status: 'alive',
       happiness: 10,
-    });
-    await animal.save();
-    return animal;
+    };
+
+    data.id = await base.create('animals', data);
+    return new Animal(data);
   }
 
   static async findAnimalById(id) {
-    const data = await readFile(id);
-    const animal = new Animal(data);
+    const data = await base.read(`animals/${id}`);
+    const animal = new Animal({ ...data, id });
     await animal.checkAndUpdateProperties();
     return animal;
   }
@@ -87,19 +62,13 @@ class Animal {
     const data = {
       name: this.name,
       age: this.age,
-      id: this.id,
       status: this.status,
       lastFeed: this.lastFeed,
       satiation: this.satiation,
       happiness: this.happiness,
     };
-    const fileName = path.join(__dirname, `${this.id}.json`);
-    return new Promise((resolve, reject) => {
-      fs.writeFile(fileName, JSON.stringify(data, null, 2), (error) => {
-        if (error) reject(error);
-        resolve(true);
-      });
-    });
+    await base.update(`animals/${this.id}`, data);
+    return this;
   }
 
   async checkAndUpdateProperties() {
